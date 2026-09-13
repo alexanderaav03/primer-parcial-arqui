@@ -100,12 +100,17 @@ class _RegistrarProgresoSheetState extends ConsumerState<_RegistrarProgresoSheet
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
         right: 20,
         top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        // viewInsets.bottom cubre el teclado; padding.bottom cubre la barra
+        // de navegación del sistema (o el gesture bar) - sin este segundo
+        // término el botón "Guardar" queda pegado a esa barra en
+        // dispositivos con navegación por botones.
+        bottom: mediaQuery.viewInsets.bottom + mediaQuery.padding.bottom + 20,
       ),
       child: SingleChildScrollView(
         child: Form(
