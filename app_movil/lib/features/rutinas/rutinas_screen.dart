@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/api_client.dart';
 import '../../core/widgets.dart';
 import '../auth/auth_provider.dart';
+import '../models/rutina.dart';
 import '../shell/main_app_bar.dart';
 import 'rutina_card.dart';
 import 'rutinas_provider.dart';
@@ -19,6 +21,45 @@ class RutinasScreen extends ConsumerWidget {
   final String titulo;
 
   const RutinasScreen({super.key, required this.clienteId, required this.titulo});
+
+  Future<void> _confirmarYEliminar(BuildContext context, WidgetRef ref, Rutina rutina) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar rutina'),
+        content: Text('¿Eliminar "${rutina.nombre}"? Esta acción no se puede deshacer'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('Eliminar', style: TextStyle(color: Theme.of(dialogContext).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    try {
+      await eliminarRutina(ref, rutinaId: rutina.id);
+      ref.invalidate(rutinasProvider(clienteId));
+    } on DioException catch (e) {
+      // Si el backend responde 409, friendlyMessage ya devuelve el detail
+      // del servidor tal cual (explica por qué no se pudo eliminar).
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(friendlyMessage(e))));
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ocurrió un error inesperado')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -70,6 +111,7 @@ class RutinasScreen extends ConsumerWidget {
                 return RutinaCard(
                   rutina: rutina,
                   onTap: () => context.push('/rutinas/${rutina.id}/detalle'),
+                  onDelete: esInstructor ? () => _confirmarYEliminar(context, ref, rutina) : null,
                 );
               },
             );

@@ -89,6 +89,7 @@ class AuthService:
             usuario = UsuarioResponse(
                 id=instructor.id,
                 nombre=instructor.nombre,
+                email=instructor.email,
                 rol=instructor.rol,
             )
             return TokenResponse(access_token=token, usuario=usuario)
@@ -100,6 +101,7 @@ class AuthService:
             usuario = UsuarioResponse(
                 id=cliente.id,
                 nombre=cliente.nombre,
+                email=cliente.email,
                 rol=cliente.rol,
             )
             return TokenResponse(access_token=token, usuario=usuario)

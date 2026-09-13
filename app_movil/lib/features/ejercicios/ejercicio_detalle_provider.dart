@@ -49,3 +49,11 @@ Future<EjercicioBanco> editarEjercicio(
   );
   return EjercicioBanco.fromJson(response.data as Map<String, dynamic>);
 }
+
+/// DELETE /api/ejercicios/{id} (solo instructor dueño). El backend responde
+/// 409 si el ejercicio está en uso en algún DetalleRutina existente -ese
+/// mensaje ya viene listo para mostrar tal cual, vía friendlyMessage-.
+Future<void> eliminarEjercicio(WidgetRef ref, {required int ejercicioId}) async {
+  final dio = ref.read(apiClientProvider);
+  await dio.delete('/api/ejercicios/$ejercicioId');
+}

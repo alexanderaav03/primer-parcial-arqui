@@ -11,6 +11,10 @@ class EjercicioRepository:
     def get_by_id(self, ejercicio_id: int) -> Ejercicio | None:
         return self.db.get(Ejercicio, ejercicio_id)
 
+    def list_by_ids(self, ids: list[int]) -> list[Ejercicio]:
+        stmt = select(Ejercicio).where(Ejercicio.id.in_(ids))
+        return list(self.db.scalars(stmt).all())
+
     def list_by_instructor(self, instructor_id: int) -> list[Ejercicio]:
         stmt = select(Ejercicio).where(Ejercicio.instructor_id == instructor_id).order_by(Ejercicio.id)
         return list(self.db.scalars(stmt).all())
@@ -25,3 +29,7 @@ class EjercicioRepository:
         self.db.commit()
         self.db.refresh(ejercicio)
         return ejercicio
+
+    def delete(self, ejercicio: Ejercicio) -> None:
+        self.db.delete(ejercicio)
+        self.db.commit()

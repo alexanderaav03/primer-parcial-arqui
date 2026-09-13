@@ -44,7 +44,7 @@ class ProxyService:
     def _service_unavailable(service_name: str) -> HTTPException:
         return HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"servicio {service_name} no disponible",
+            detail=f"servicio {service_name} no disponible, intenta más tarde",
         )
 
     async def _request(
@@ -70,7 +70,13 @@ class ProxyService:
         except (httpx.RequestError, httpx.TimeoutException) as exc:
             duracion_ms = int((time.perf_counter() - inicio) * 1000)
             logger.error(
-                "%s %s -> %s no respondió (%sms)", method, url, service_name, duracion_ms
+                "%s %s -> %s no respondió (%sms): %s: %s",
+                method,
+                url,
+                service_name,
+                duracion_ms,
+                type(exc).__name__,
+                exc,
             )
             raise self._service_unavailable(service_name) from exc
 
@@ -125,8 +131,9 @@ class ProxyService:
         *,
         headers: dict[str, str],
         service_name: str,
+        params: dict[str, str] | None = None,
     ) -> Any:
-        response = await self._request("GET", url, headers=headers, service_name=service_name)
+        response = await self._request("GET", url, headers=headers, params=params, service_name=service_name)
         if response.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR:
             raise self._service_unavailable(service_name)
         if response.status_code != status.HTTP_200_OK:
@@ -136,6 +143,30 @@ class ProxyService:
                 detail = response.text
             raise HTTPException(status_code=response.status_code, detail=detail)
         return response.json()
+
+    async def _fetch_ejercicios_batch(
+        self,
+        ejercicio_ids: set[int],
+        *,
+        headers: dict[str, str],
+    ) -> dict[int, dict[str, Any]]:
+        """Una sola llamada a ms-ejercicios para resolver varios ejercicio_id
+        a la vez (evita el N+1 de pedirlos uno por uno). Devuelve un dict
+        ejercicio_id -> ejercicio; los ids que ms-ejercicios no devolvió
+        (borrados, o sin permiso) simplemente no están en el dict.
+        """
+        if not ejercicio_ids:
+            return {}
+
+        url = f"{self.ejercicios_base}/api/ejercicios/batch"
+        ids_param = ",".join(str(i) for i in sorted(ejercicio_ids))
+        ejercicios = await self.get_json(
+            url,
+            headers=headers,
+            service_name="ms-ejercicios",
+            params={"ids": ids_param},
+        )
+        return {ejercicio["id"]: ejercicio for ejercicio in ejercicios}
 
     async def get_rutina_detalle(self, request: Request, rutina_id: int) -> JSONResponse:
         headers = self._forward_headers(request)
@@ -148,17 +179,22 @@ class ProxyService:
             self.get_json(detalles_url, headers=headers, service_name="ms-rutinas"),
         )
 
-        async def fetch_ejercicio(detalle: dict[str, Any]) -> dict[str, Any]:
+        ejercicios_por_id = await self._fetch_ejercicios_batch(
+            {detalle["ejercicio_id"] for detalle in detalles},
+            headers=headers,
+        )
+
+        def combinar(detalle: dict[str, Any]) -> dict[str, Any]:
             ejercicio_id = detalle["ejercicio_id"]
-            ejercicio_url = f"{self.ejercicios_base}/api/ejercicios/{ejercicio_id}"
-            ejercicio = await self.get_json(
-                ejercicio_url,
-                headers=headers,
-                service_name="ms-ejercicios",
-            )
+            ejercicio = ejercicios_por_id.get(ejercicio_id)
+            if ejercicio is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Ejercicio {ejercicio_id} no encontrado",
+                )
             return {
                 "detalle_id": detalle["detalle_id"],
-                "ejercicio_id": detalle["ejercicio_id"],
+                "ejercicio_id": ejercicio_id,
                 "nombre": ejercicio["nombre"],
                 "descripcion": ejercicio["descripcion"],
                 "imagen_url": ejercicio.get("imagen_url"),
@@ -166,13 +202,12 @@ class ProxyService:
                 "tiene_ejemplo_completo": ejercicio["tiene_ejemplo_completo"],
                 "repeticiones": detalle["repeticiones"],
                 "series": detalle["series"],
+                "sesiones_por_semana": detalle["sesiones_por_semana"],
                 "peso": detalle["peso"],
                 "descanso_serie": detalle["descanso_serie"],
                 "descanso_ejercicio": detalle["descanso_ejercicio"],
                 "rpe": detalle["rpe"],
             }
-
-        ejercicios = await asyncio.gather(*(fetch_ejercicio(d) for d in detalles))
 
         payload = {
             "id": rutina["id"],
@@ -180,7 +215,7 @@ class ProxyService:
             "nombre": rutina["nombre"],
             "fecha_inicio": rutina["fecha_inicio"],
             "fecha_fin": rutina["fecha_fin"],
-            "ejercicios": list(ejercicios),
+            "ejercicios": [combinar(detalle) for detalle in detalles],
         }
         return JSONResponse(content=payload)
 

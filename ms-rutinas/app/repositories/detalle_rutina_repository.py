@@ -28,3 +28,7 @@ class DetalleRutinaRepository:
     def delete(self, detalle: DetalleRutina) -> None:
         self.db.delete(detalle)
         self.db.commit()
+
+    def exists_by_ejercicio(self, ejercicio_id: int) -> bool:
+        stmt = select(DetalleRutina.id).where(DetalleRutina.ejercicio_id == ejercicio_id).limit(1)
+        return self.db.scalars(stmt).first() is not None

@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.clients.rutinas_client import rutinas_client
 from app.dependencies import CurrentUser
 from app.models.ejercicio import Ejercicio
 from app.repositories.cliente_repository import ClienteRepository
@@ -27,6 +28,19 @@ class EjercicioService:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Ejercicio no encontrado",
         )
+
+    def get_by_ids(self, ids: list[int], current_user: CurrentUser) -> list[EjercicioResponse]:
+        """Para el batch del gateway (evita el N+1 al armar el detalle de una
+        rutina): misma regla de visibilidad que get_by_id, pero en una sola
+        consulta. Los ids que no existen o no son visibles para este usuario
+        simplemente no aparecen en la respuesta -no es un error-.
+        """
+        if not ids:
+            return []
+
+        ejercicios = self.ejercicio_repo.list_by_ids(ids)
+        visibles = [e for e in ejercicios if self._puede_ver(e, current_user)]
+        return [EjercicioResponse.model_validate(e) for e in visibles]
 
     def _puede_ver(self, ejercicio: Ejercicio, current_user: CurrentUser) -> bool:
         if current_user.rol == "instructor":
@@ -83,3 +97,20 @@ class EjercicioService:
 
         updated = self.ejercicio_repo.update(ejercicio)
         return EjercicioResponse.model_validate(updated)
+
+    async def delete(self, ejercicio_id: int, instructor_id: int, bearer_token: str) -> None:
+        ejercicio = self.ejercicio_repo.get_by_id(ejercicio_id)
+        if ejercicio is None or ejercicio.instructor_id != instructor_id:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Ejercicio no encontrado",
+            )
+
+        en_uso = await rutinas_client.existe_en_detalle(ejercicio_id, bearer_token)
+        if en_uso:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="No se puede eliminar: este ejercicio está siendo usado en una o más rutinas existentes",
+            )
+
+        self.ejercicio_repo.delete(ejercicio)

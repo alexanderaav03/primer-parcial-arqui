@@ -29,3 +29,7 @@ class ClienteRepository:
         self.db.commit()
         self.db.refresh(cliente)
         return cliente
+
+    def delete(self, cliente: Cliente) -> None:
+        self.db.delete(cliente)
+        self.db.commit()

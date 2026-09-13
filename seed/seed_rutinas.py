@@ -104,6 +104,7 @@ class DetalleRutina(RutinasBase):
     ejercicio_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     repeticiones: Mapped[int] = mapped_column(Integer, nullable=False)
     series: Mapped[int] = mapped_column(Integer, nullable=False)
+    sesiones_por_semana: Mapped[int] = mapped_column(Integer, nullable=False)
     peso: Mapped[float] = mapped_column(Float, nullable=False)
     descanso_serie: Mapped[str] = mapped_column(String(50), nullable=False)
     descanso_ejercicio: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -115,6 +116,7 @@ class DetalleRutina(RutinasBase):
 DETALLE_DEFAULT = {
     "repeticiones": 12,
     "series": 3,
+    "sesiones_por_semana": 3,
     "peso": 20,
     "descanso_serie": "1 min",
     "descanso_ejercicio": "2 min",

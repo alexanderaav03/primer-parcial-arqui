@@ -6,9 +6,15 @@ docker-compose up
 cd C:\xampp\htdocs\gym\app_movil
 flutter run -d R9JN7145S9J --dart-define=GATEWAY_BASE_URL=http://192.168.0.11:8000
 
+# Terminal 3
+adb connect 192.168.0.10:42203
+cd C:\xampp\htdocs\gym\app_movil
+flutter run -d 192.168.0.10:42203 --dart-define=GATEWAY_BASE_URL=http://192.168.0.11:8000
 
-
-
+# Terminal 4
+adb pair 192.168.0.13:42627 519382
+adb connect 192.168.0.13:39151
+flutter run -d 192.168.0.13:42627 --dart-define=GATEWAY_BASE_URL=http://192.168.0.11:8000
 
 RECONECTAR WIFI DEBUGGING (ya emparejado antes, misma red)
 ============================================================

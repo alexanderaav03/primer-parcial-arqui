@@ -135,6 +135,13 @@ class EmptyView extends StatelessWidget {
   }
 }
 
+/// '' si es null; sin decimales si es un entero (evita "72.0" en un campo o
+/// texto). La usan los formularios y cards de Cliente para peso/altura.
+String formatNumeroSinDecimales(double? value) {
+  if (value == null) return '';
+  return value == value.roundToDouble() ? value.toInt().toString() : value.toString();
+}
+
 String _initialsFor(String nombre) {
   final partes = nombre.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
   if (partes.isEmpty) return '?';

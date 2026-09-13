@@ -12,7 +12,11 @@ class RutinaCard extends StatelessWidget {
   final Rutina rutina;
   final VoidCallback onTap;
 
-  const RutinaCard({super.key, required this.rutina, required this.onTap});
+  /// Ícono de eliminar opcional -solo la vista del instructor en
+  /// RutinasScreen lo pasa; en el resumen de HomeScreen se omite-.
+  final VoidCallback? onDelete;
+
+  const RutinaCard({super.key, required this.rutina, required this.onTap, this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +60,13 @@ class RutinaCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onDelete != null)
+                IconButton(
+                  icon: Icon(Icons.delete_outline, size: 20, color: Theme.of(context).colorScheme.error),
+                  tooltip: 'Eliminar rutina',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: onDelete,
+                ),
               Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4)),
             ],
           ),

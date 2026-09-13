@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api_client.dart';
+import '../../core/widgets.dart';
 import '../models/cliente.dart';
 import 'clientes_provider.dart';
 
-/// Mismo formulario visual de CrearClienteScreen, pero solo con Nombre y
-/// Objetivo -email/password quedan fuera de alcance, se editarían junto
-/// con lógica de autenticación/reset de contraseña más adelante-.
+/// Mismo formulario visual de CrearClienteScreen, pero solo con Nombre,
+/// Objetivo, Peso y Altura -email/password quedan fuera de alcance, se
+/// editarían junto con lógica de autenticación/reset de contraseña más
+/// adelante-.
 class EditarClienteScreen extends ConsumerStatefulWidget {
   final Cliente cliente;
 
@@ -22,6 +24,8 @@ class _EditarClienteScreenState extends ConsumerState<EditarClienteScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nombreCtrl;
   late final TextEditingController _objetivoCtrl;
+  late final TextEditingController _pesoCtrl;
+  late final TextEditingController _alturaCtrl;
 
   bool _loading = false;
   String? _error;
@@ -31,12 +35,16 @@ class _EditarClienteScreenState extends ConsumerState<EditarClienteScreen> {
     super.initState();
     _nombreCtrl = TextEditingController(text: widget.cliente.nombre);
     _objetivoCtrl = TextEditingController(text: widget.cliente.objetivo);
+    _pesoCtrl = TextEditingController(text: formatNumeroSinDecimales(widget.cliente.peso));
+    _alturaCtrl = TextEditingController(text: formatNumeroSinDecimales(widget.cliente.altura));
   }
 
   @override
   void dispose() {
     _nombreCtrl.dispose();
     _objetivoCtrl.dispose();
+    _pesoCtrl.dispose();
+    _alturaCtrl.dispose();
     super.dispose();
   }
 
@@ -54,6 +62,8 @@ class _EditarClienteScreenState extends ConsumerState<EditarClienteScreen> {
         clienteId: widget.cliente.id,
         nombre: _nombreCtrl.text.trim(),
         objetivo: _objetivoCtrl.text.trim(),
+        peso: double.tryParse(_pesoCtrl.text.trim()),
+        altura: double.tryParse(_alturaCtrl.text.trim()),
       );
 
       // Refresca la lista de ClientesScreen para que se vean los cambios.
@@ -108,7 +118,33 @@ class _EditarClienteScreenState extends ConsumerState<EditarClienteScreen> {
                         ),
                         validator: (value) =>
                             (value == null || value.trim().isEmpty) ? 'Ingresa el objetivo' : null,
-                        onFieldSubmitted: (_) => _submit(),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _pesoCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Peso (kg)',
+                                prefixIcon: Icon(Icons.monitor_weight_outlined),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _alturaCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Altura (cm)',
+                                prefixIcon: Icon(Icons.height),
+                              ),
+                              onFieldSubmitted: (_) => _submit(),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 24),
                       FilledButton(

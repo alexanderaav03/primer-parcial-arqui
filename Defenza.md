@@ -1,0 +1,1 @@
+¿Cómo evitan el problema N+1?" → mostrás el batch endpoint y el log real de 3 vs 7 llamadas.

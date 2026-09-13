@@ -40,6 +40,8 @@ class _CrearClienteScreenState extends ConsumerState<CrearClienteScreen> {
   final _objetivoCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _pesoCtrl = TextEditingController();
+  final _alturaCtrl = TextEditingController();
 
   bool _loading = false;
   bool _obscureText = true;
@@ -51,6 +53,8 @@ class _CrearClienteScreenState extends ConsumerState<CrearClienteScreen> {
     _objetivoCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
+    _pesoCtrl.dispose();
+    _alturaCtrl.dispose();
     super.dispose();
   }
 
@@ -69,6 +73,8 @@ class _CrearClienteScreenState extends ConsumerState<CrearClienteScreen> {
         objetivo: _objetivoCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text,
+        peso: double.tryParse(_pesoCtrl.text.trim()),
+        altura: double.tryParse(_alturaCtrl.text.trim()),
       );
 
       // Refresca la lista de ClientesScreen para que el nuevo cliente
@@ -97,6 +103,8 @@ class _CrearClienteScreenState extends ConsumerState<CrearClienteScreen> {
       _objetivoCtrl.text = objetivo;
       _emailCtrl.text = '$emailBase$numero@test.com';
       _passwordCtrl.text = _debugPassword;
+      _pesoCtrl.text = (60 + _debugRandom.nextInt(40)).toString();
+      _alturaCtrl.text = (155 + _debugRandom.nextInt(40)).toString();
       _error = null;
     });
   }
@@ -180,7 +188,33 @@ class _CrearClienteScreenState extends ConsumerState<CrearClienteScreen> {
                         ),
                         validator: (value) =>
                             (value == null || value.isEmpty) ? 'Ingresa la contraseña' : null,
-                        onFieldSubmitted: (_) => _submit(),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _pesoCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Peso (kg)',
+                                prefixIcon: Icon(Icons.monitor_weight_outlined),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _alturaCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Altura (cm)',
+                                prefixIcon: Icon(Icons.height),
+                              ),
+                              onFieldSubmitted: (_) => _submit(),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 24),
                       FilledButton(

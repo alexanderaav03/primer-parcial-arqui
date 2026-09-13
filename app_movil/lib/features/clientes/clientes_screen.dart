@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/api_client.dart';
 import '../../core/widgets.dart';
 import '../auth/auth_provider.dart';
+import '../models/cliente.dart';
 import '../shell/main_app_bar.dart';
 import 'cliente_card.dart';
 import 'clientes_provider.dart';
@@ -25,6 +27,45 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
   void dispose() {
     _busquedaCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _confirmarYEliminar(Cliente cliente) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar cliente'),
+        content: Text('¿Eliminar a ${cliente.nombre}? Esta acción no se puede deshacer'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('Eliminar', style: TextStyle(color: Theme.of(dialogContext).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    try {
+      await eliminarCliente(ref, clienteId: cliente.id);
+      ref.invalidate(clientesProvider);
+    } on DioException catch (e) {
+      // Si el backend responde 409, friendlyMessage ya devuelve el detail
+      // del servidor tal cual (explica por qué no se pudo eliminar).
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(friendlyMessage(e))));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ocurrió un error inesperado')),
+        );
+      }
+    }
   }
 
   @override
@@ -96,6 +137,7 @@ class _ClientesScreenState extends ConsumerState<ClientesScreen> {
                           '/clientes/${cliente.id}/editar',
                           extra: cliente,
                         ),
+                        onDelete: () => _confirmarYEliminar(cliente),
                       );
                     },
                   );

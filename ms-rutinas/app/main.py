@@ -46,6 +46,7 @@ API_PREFIX = "/api"
 
 app.include_router(rutinas.router, prefix=API_PREFIX)
 app.include_router(detalles.router, prefix=API_PREFIX)
+app.include_router(detalles.internal_router, prefix=API_PREFIX)
 app.include_router(progreso.router, prefix=API_PREFIX)
 
 

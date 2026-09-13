@@ -48,6 +48,16 @@ async def update_ejercicio(ejercicio_id: int, request: Request) -> Response:
     )
 
 
+@router.delete("/ejercicios/{ejercicio_id}")
+async def delete_ejercicio(ejercicio_id: int, request: Request) -> Response:
+    return await proxy_service.forward(
+        request,
+        base_url=EJERCICIOS_BASE,
+        path=f"/api/ejercicios/{ejercicio_id}",
+        service_name="ms-ejercicios",
+    )
+
+
 @router.get("/clientes")
 async def list_clientes(request: Request) -> Response:
     return await proxy_service.forward(
@@ -70,6 +80,16 @@ async def create_cliente(request: Request) -> Response:
 
 @router.put("/clientes/{cliente_id}")
 async def update_cliente(cliente_id: int, request: Request) -> Response:
+    return await proxy_service.forward(
+        request,
+        base_url=EJERCICIOS_BASE,
+        path=f"/api/clientes/{cliente_id}",
+        service_name="ms-ejercicios",
+    )
+
+
+@router.delete("/clientes/{cliente_id}")
+async def delete_cliente(cliente_id: int, request: Request) -> Response:
     return await proxy_service.forward(
         request,
         base_url=EJERCICIOS_BASE,

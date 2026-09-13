@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,7 @@ import '../../core/widgets.dart';
 import '../auth/auth_provider.dart';
 import '../models/ejercicio_banco.dart';
 import 'ejercicio_detalle_provider.dart';
+import 'ejercicios_provider.dart';
 
 class EjercicioDetalleScreen extends ConsumerWidget {
   final int ejercicioId;
@@ -26,6 +28,48 @@ class EjercicioDetalleScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _confirmarYEliminar(BuildContext context, WidgetRef ref) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar ejercicio'),
+        content: const Text(
+          '¿Eliminar este ejercicio del banco? Esta acción no se puede deshacer',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text('Eliminar', style: TextStyle(color: Theme.of(dialogContext).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    try {
+      await eliminarEjercicio(ref, ejercicioId: ejercicioId);
+      ref.invalidate(ejerciciosBancoProvider);
+      if (context.mounted) context.pop();
+    } on DioException catch (e) {
+      // Si el backend responde 409, friendlyMessage ya devuelve el detail
+      // del servidor tal cual (explica por qué no se pudo eliminar).
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(friendlyMessage(e))));
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ocurrió un error inesperado')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ejercicioAsync = ref.watch(ejercicioDetalleProvider(ejercicioId));
@@ -36,12 +80,18 @@ class EjercicioDetalleScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Detalle de ejercicio'),
         actions: [
-          if (esInstructor && ejercicioCargado != null)
+          if (esInstructor && ejercicioCargado != null) ...[
             IconButton(
               icon: const Icon(Icons.edit_outlined),
               tooltip: 'Editar ejercicio',
               onPressed: () => context.push('/ejercicios/$ejercicioId/editar', extra: ejercicioCargado),
             ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Eliminar ejercicio',
+              onPressed: () => _confirmarYEliminar(context, ref),
+            ),
+          ],
         ],
       ),
       body: ejercicioAsync.when(

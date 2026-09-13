@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -14,6 +14,8 @@ class Cliente(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     rol: Mapped[str] = mapped_column(String(50), nullable=False, default="cliente")
+    peso: Mapped[float | None] = mapped_column(Float, nullable=True)
+    altura: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     instructor: Mapped["Instructor"] = relationship(back_populates="clientes")
 

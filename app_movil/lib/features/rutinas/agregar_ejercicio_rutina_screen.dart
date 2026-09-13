@@ -37,6 +37,7 @@ class _AgregarEjercicioRutinaScreenState extends ConsumerState<AgregarEjercicioR
   final _formKey = GlobalKey<FormState>();
   final _seriesCtrl = TextEditingController();
   final _repeticionesCtrl = TextEditingController();
+  final _sesionesPorSemanaCtrl = TextEditingController();
   final _pesoCtrl = TextEditingController();
   final _descansoSerieCtrl = TextEditingController();
   final _descansoEjercicioCtrl = TextEditingController();
@@ -51,6 +52,7 @@ class _AgregarEjercicioRutinaScreenState extends ConsumerState<AgregarEjercicioR
   void dispose() {
     _seriesCtrl.dispose();
     _repeticionesCtrl.dispose();
+    _sesionesPorSemanaCtrl.dispose();
     _pesoCtrl.dispose();
     _descansoSerieCtrl.dispose();
     _descansoEjercicioCtrl.dispose();
@@ -65,6 +67,7 @@ class _AgregarEjercicioRutinaScreenState extends ConsumerState<AgregarEjercicioR
       _ejercicioSeleccionado = ejercicio;
       _seriesCtrl.text = ejercicio?.seriesSugeridas?.toString() ?? '';
       _repeticionesCtrl.text = ejercicio?.repeticionesSugeridas?.toString() ?? '';
+      _sesionesPorSemanaCtrl.clear();
       _pesoCtrl.text = ejercicio?.pesoSugerido?.toString() ?? '';
       _descansoSerieCtrl.text = ejercicio?.descansoSerieSugerido ?? '';
       _descansoEjercicioCtrl.text = ejercicio?.descansoEjercicioSugerido ?? '';
@@ -88,6 +91,7 @@ class _AgregarEjercicioRutinaScreenState extends ConsumerState<AgregarEjercicioR
 
     final series = int.parse(_seriesCtrl.text.trim());
     final repeticiones = int.parse(_repeticionesCtrl.text.trim());
+    final sesionesPorSemana = int.parse(_sesionesPorSemanaCtrl.text.trim());
 
     try {
       await agregarDetalle(
@@ -96,6 +100,7 @@ class _AgregarEjercicioRutinaScreenState extends ConsumerState<AgregarEjercicioR
         ejercicioId: ejercicio.id,
         repeticiones: repeticiones,
         series: series,
+        sesionesPorSemana: sesionesPorSemana,
         peso: num.parse(_pesoCtrl.text.trim()),
         descansoSerie: _descansoSerieCtrl.text.trim(),
         descansoEjercicio: _descansoEjercicioCtrl.text.trim(),
@@ -111,6 +116,7 @@ class _AgregarEjercicioRutinaScreenState extends ConsumerState<AgregarEjercicioR
         _ejercicioSeleccionado = null;
         _seriesCtrl.clear();
         _repeticionesCtrl.clear();
+        _sesionesPorSemanaCtrl.clear();
         _pesoCtrl.clear();
         _descansoSerieCtrl.clear();
         _descansoEjercicioCtrl.clear();
@@ -178,13 +184,17 @@ class _AgregarEjercicioRutinaScreenState extends ConsumerState<AgregarEjercicioR
                         const SizedBox(height: 12),
                         DropdownButtonFormField<EjercicioBanco>(
                           value: _ejercicioSeleccionado,
+                          isExpanded: true,
                           decoration: const InputDecoration(
                             labelText: 'Ejercicio',
                             prefixIcon: Icon(Icons.fitness_center_outlined),
                           ),
                           items: [
                             for (final ejercicio in ejercicios)
-                              DropdownMenuItem(value: ejercicio, child: Text(ejercicio.nombre)),
+                              DropdownMenuItem(
+                                value: ejercicio,
+                                child: Text(ejercicio.nombre, overflow: TextOverflow.ellipsis),
+                              ),
                           ],
                           onChanged: _onEjercicioSeleccionado,
                         ),
@@ -209,6 +219,16 @@ class _AgregarEjercicioRutinaScreenState extends ConsumerState<AgregarEjercicioR
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _sesionesPorSemanaCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Sesiones por semana',
+                            prefixIcon: Icon(Icons.event_repeat_outlined),
+                          ),
+                          validator: _validarEntero,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(

@@ -25,3 +25,15 @@ class RutinaRepository:
         self.db.commit()
         self.db.refresh(rutina)
         return rutina
+
+    def exists_by_cliente(self, cliente_id: int) -> bool:
+        stmt = select(Rutina.id).where(Rutina.cliente_id == cliente_id).limit(1)
+        return self.db.scalars(stmt).first() is not None
+
+    def delete(self, rutina: Rutina) -> None:
+        # cascade="all, delete-orphan" en Rutina.detalles se encarga de borrar
+        # sus DetalleRutina; a su vez, la FK ondelete=CASCADE de
+        # RegistroProgreso se encarga de esos -pero eso solo importa si
+        # existieran, y el caller ya confirmó que no antes de llegar aquí-.
+        self.db.delete(rutina)
+        self.db.commit()

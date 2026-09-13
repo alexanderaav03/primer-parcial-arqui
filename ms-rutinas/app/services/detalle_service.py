@@ -35,6 +35,7 @@ class DetalleService:
             ejercicio_id=data.ejercicio_id,
             repeticiones=data.repeticiones,
             series=data.series,
+            sesiones_por_semana=data.sesiones_por_semana,
             peso=data.peso,
             descanso_serie=data.descanso_serie,
             descanso_ejercicio=data.descanso_ejercicio,
@@ -55,3 +56,9 @@ class DetalleService:
             )
 
         self.detalle_repo.delete(detalle)
+
+    def existe_ejercicio(self, ejercicio_id: int) -> bool:
+        """True si el ejercicio está referenciado en algún DetalleRutina, de
+        cualquier rutina/cliente -no filtra por instructor-. La usa
+        ms-ejercicios antes de permitir borrar un ejercicio del banco."""
+        return self.detalle_repo.exists_by_ejercicio(ejercicio_id)

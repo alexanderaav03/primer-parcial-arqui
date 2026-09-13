@@ -202,6 +202,7 @@ class _EjercicioCard extends ConsumerWidget {
                   children: [
                     InfoBadge(label: '${ejercicio.series} series'),
                     InfoBadge(label: '${ejercicio.repeticiones} reps'),
+                    InfoBadge(label: '${ejercicio.sesionesPorSemana}x por semana'),
                     InfoBadge(label: '${ejercicio.peso} kg'),
                     InfoBadge(label: 'RPE ${ejercicio.rpe}'),
                   ],

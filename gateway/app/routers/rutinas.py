@@ -44,6 +44,16 @@ async def update_rutina(rutina_id: int, request: Request) -> Response:
     )
 
 
+@router.delete("/{rutina_id}")
+async def delete_rutina(rutina_id: int, request: Request) -> Response:
+    return await proxy_service.forward(
+        request,
+        base_url=RUTINAS_BASE,
+        path=f"/api/rutinas/{rutina_id}",
+        service_name="ms-rutinas",
+    )
+
+
 @router.post("/{rutina_id}/detalles")
 async def create_detalle(rutina_id: int, request: Request) -> Response:
     return await proxy_service.forward(

@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = ""
     SUPABASE_KEY: str = ""
     SUPABASE_BUCKET: str = "ejercicios-media"
+    MS_RUTINAS_URL: str = "http://localhost:8002"
 
 
 settings = Settings()

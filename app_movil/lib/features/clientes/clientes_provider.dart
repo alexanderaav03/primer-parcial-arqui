@@ -20,6 +20,8 @@ Future<Cliente> crearCliente(
   required String objetivo,
   required String email,
   required String password,
+  double? peso,
+  double? altura,
 }) async {
   final dio = ref.read(apiClientProvider);
   final response = await dio.post(
@@ -29,9 +31,20 @@ Future<Cliente> crearCliente(
       'objetivo': objetivo,
       'email': email,
       'password': password,
+      'peso': peso,
+      'altura': altura,
     },
   );
   return Cliente.fromJson(response.data as Map<String, dynamic>);
+}
+
+/// DELETE /api/clientes/{id} (solo instructor dueño). El backend responde
+/// 409 si el cliente tiene rutinas asignadas -ese mensaje ya viene listo
+/// para mostrar tal cual, vía friendlyMessage-. El caller debe invalidar
+/// [clientesProvider] tras un borrado exitoso.
+Future<void> eliminarCliente(WidgetRef ref, {required int clienteId}) async {
+  final dio = ref.read(apiClientProvider);
+  await dio.delete('/api/clientes/$clienteId');
 }
 
 /// PUT /api/clientes/{id} (solo instructor, y solo si el cliente le
@@ -42,6 +55,8 @@ Future<Cliente> editarCliente(
   required int clienteId,
   required String nombre,
   required String objetivo,
+  double? peso,
+  double? altura,
 }) async {
   final dio = ref.read(apiClientProvider);
   final response = await dio.put(
@@ -49,6 +64,8 @@ Future<Cliente> editarCliente(
     data: {
       'nombre': nombre,
       'objetivo': objetivo,
+      'peso': peso,
+      'altura': altura,
     },
   );
   return Cliente.fromJson(response.data as Map<String, dynamic>);

@@ -53,11 +53,18 @@ class PerfilScreen extends ConsumerWidget {
                     // del gateway (hoy existe en ms-ejercicios pero el gateway
                     // no lo proxea) para poder traer la especialidad.
                     const _InfoRow(icon: Icons.workspace_premium_outlined, label: 'Especialidad', valor: null)
-                  else
+                  else ...[
                     // TODO: no existe hoy un endpoint que permita a un cliente
-                    // consultar su propio objetivo (GET /api/clientes es
-                    // solo-instructor). Falta algo tipo GET /api/clientes/me.
+                    // consultar sus propios datos (objetivo, peso, altura) -
+                    // GET /api/clientes es solo-instructor. Falta algo tipo
+                    // GET /api/clientes/me. Mientras tanto estos tres quedan
+                    // en "No disponible aún" para el rol cliente.
                     const _InfoRow(icon: Icons.flag_outlined, label: 'Objetivo', valor: null),
+                    const Divider(height: 1),
+                    const _InfoRow(icon: Icons.monitor_weight_outlined, label: 'Peso', valor: null),
+                    const Divider(height: 1),
+                    const _InfoRow(icon: Icons.height_outlined, label: 'Altura', valor: null),
+                  ],
                 ],
               ),
             ),

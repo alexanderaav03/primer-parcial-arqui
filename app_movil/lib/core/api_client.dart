@@ -62,7 +62,10 @@ final apiClientProvider = Provider<Dio>((ref) {
           message = 'Email o contraseña incorrectos';
           mostrarSnackbarGlobal = false;
         } else if (statusCode == 503) {
-          message = 'Servicio no disponible, intenta de nuevo';
+          final data = error.response?.data;
+          message = (data is Map && data['error'] != null)
+              ? data['error'].toString()
+              : 'Servicio no disponible, intenta de nuevo';
         } else if (statusCode != null) {
           final data = error.response?.data;
           message = (data is Map && data['detail'] != null)

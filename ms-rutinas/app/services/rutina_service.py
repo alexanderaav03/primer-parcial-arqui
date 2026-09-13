@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.clients.ejercicios_client import ejercicios_client
 from app.dependencies import CurrentUser
 from app.models.rutina import Rutina
+from app.repositories.registro_progreso_repository import RegistroProgresoRepository
 from app.repositories.rutina_repository import RutinaRepository
 from app.schemas.rutina import RutinaCreate, RutinaResponse, RutinaUpdate
 
@@ -13,6 +14,7 @@ from app.schemas.rutina import RutinaCreate, RutinaResponse, RutinaUpdate
 class RutinaService:
     def __init__(self, db: Session) -> None:
         self.rutina_repo = RutinaRepository(db)
+        self.registro_repo = RegistroProgresoRepository(db)
 
     @staticmethod
     def _ensure_cliente_access(cliente_id: int, current_user: CurrentUser) -> None:
@@ -136,3 +138,22 @@ class RutinaService:
                 detail="Rutina no encontrada",
             )
         return rutina
+
+    def existe_cliente(self, cliente_id: int) -> bool:
+        """True si el cliente tiene alguna Rutina asignada, sin importar si
+        tiene detalles o registros. La usa ms-ejercicios antes de permitir
+        borrar un cliente."""
+        return self.rutina_repo.exists_by_cliente(cliente_id)
+
+    async def delete(self, rutina_id: int, bearer_token: str) -> None:
+        rutina = self.get_rutina_or_404(rutina_id)
+        await self.assert_instructor_dueno(rutina, bearer_token)
+
+        tiene_progreso = self.registro_repo.exists_by_rutina(rutina_id)
+        if tiene_progreso:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="No se puede eliminar: esta rutina ya tiene progreso registrado por el cliente",
+            )
+
+        self.rutina_repo.delete(rutina)

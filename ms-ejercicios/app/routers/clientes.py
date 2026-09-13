@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import CurrentUser, require_instructor
+from app.dependencies import CurrentUser, get_bearer_token, require_instructor
 from app.schemas.cliente import ClienteCreate, ClienteResponse, ClienteUpdate
 from app.services.cliente_service import ClienteService
 
@@ -36,3 +36,13 @@ def update_cliente(
     db: Annotated[Session, Depends(get_db)],
 ) -> ClienteResponse:
     return ClienteService(db).update(current_user.id, cliente_id, body)
+
+
+@router.delete("/{cliente_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_cliente(
+    cliente_id: int,
+    current_user: Annotated[CurrentUser, Depends(require_instructor)],
+    bearer_token: Annotated[str, Depends(get_bearer_token)],
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
+    await ClienteService(db).delete(cliente_id, current_user.id, bearer_token)

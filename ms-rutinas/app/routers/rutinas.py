@@ -48,3 +48,13 @@ async def update_rutina(
     db: Annotated[Session, Depends(get_db)],
 ) -> RutinaResponse:
     return await RutinaService(db).update(rutina_id, body, bearer_token)
+
+
+@router.delete("/{rutina_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_rutina(
+    rutina_id: int,
+    current_user: Annotated[CurrentUser, Depends(require_instructor)],
+    bearer_token: Annotated[str, Depends(get_bearer_token)],
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
+    await RutinaService(db).delete(rutina_id, bearer_token)

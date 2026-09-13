@@ -45,6 +45,18 @@ def get_current_user(
     return CurrentUser(id=int(user_id), rol=str(rol))
 
 
+def get_bearer_token(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security_scheme)],
+) -> str:
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales de autenticación no provistas",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return credentials.credentials
+
+
 def require_instructor(current_user: Annotated[CurrentUser, Depends(get_current_user)]) -> CurrentUser:
     if current_user.rol != "instructor":
         raise HTTPException(

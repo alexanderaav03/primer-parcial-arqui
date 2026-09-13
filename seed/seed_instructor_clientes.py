@@ -24,7 +24,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from passlib.context import CryptContext
-from sqlalchemy import ForeignKey, String, create_engine
+from sqlalchemy import Float, ForeignKey, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -66,6 +66,8 @@ class Cliente(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     rol: Mapped[str] = mapped_column(String(50), nullable=False, default="cliente")
+    peso: Mapped[float | None] = mapped_column(Float, nullable=True)
+    altura: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     instructor: Mapped["Instructor"] = relationship(back_populates="clientes")
 
@@ -78,9 +80,30 @@ INSTRUCTOR = {
 }
 
 CLIENTES = [
-    {"nombre": "Ana Rojas", "objetivo": "Perder grasa", "email": "ana@test.com", "password": "test1234"},
-    {"nombre": "Luis Paz", "objetivo": "Ganar masa muscular", "email": "luis@test.com", "password": "test1234"},
-    {"nombre": "Marta Vega", "objetivo": "Tonificar", "email": "marta@test.com", "password": "test1234"},
+    {
+        "nombre": "Ana Rojas",
+        "objetivo": "Perder grasa",
+        "email": "ana@test.com",
+        "password": "test1234",
+        "peso": 78.5,
+        "altura": 165.0,
+    },
+    {
+        "nombre": "Luis Paz",
+        "objetivo": "Ganar masa muscular",
+        "email": "luis@test.com",
+        "password": "test1234",
+        "peso": 70.0,
+        "altura": 178.0,
+    },
+    {
+        "nombre": "Marta Vega",
+        "objetivo": "Tonificar",
+        "email": "marta@test.com",
+        "password": "test1234",
+        "peso": 60.0,
+        "altura": 162.0,
+    },
 ]
 
 
@@ -103,7 +126,16 @@ def get_or_create_instructor(db: Session) -> Instructor:
     return instructor
 
 
-def get_or_create_cliente(db: Session, instructor: Instructor, nombre: str, objetivo: str, email: str, password: str) -> Cliente:
+def get_or_create_cliente(
+    db: Session,
+    instructor: Instructor,
+    nombre: str,
+    objetivo: str,
+    email: str,
+    password: str,
+    peso: float,
+    altura: float,
+) -> Cliente:
     existente = db.query(Cliente).filter(Cliente.email == email).first()
     if existente:
         print(f"[=] Cliente ya existia: id={existente.id} email={existente.email}")
@@ -116,6 +148,8 @@ def get_or_create_cliente(db: Session, instructor: Instructor, nombre: str, obje
         email=email,
         password_hash=pwd_context.hash(password),
         rol="cliente",
+        peso=peso,
+        altura=altura,
     )
     db.add(cliente)
     db.flush()
@@ -134,7 +168,9 @@ def main() -> None:
         instructor = get_or_create_instructor(db)
 
         for c in CLIENTES:
-            get_or_create_cliente(db, instructor, c["nombre"], c["objetivo"], c["email"], c["password"])
+            get_or_create_cliente(
+                db, instructor, c["nombre"], c["objetivo"], c["email"], c["password"], c["peso"], c["altura"]
+            )
 
         db.commit()
         print("== Listo ==")

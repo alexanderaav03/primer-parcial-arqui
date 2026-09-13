@@ -52,6 +52,7 @@ Future<int> agregarDetalle(
   required int ejercicioId,
   required int repeticiones,
   required int series,
+  required int sesionesPorSemana,
   required num peso,
   required String descansoSerie,
   required String descansoEjercicio,
@@ -64,6 +65,7 @@ Future<int> agregarDetalle(
       'ejercicio_id': ejercicioId,
       'repeticiones': repeticiones,
       'series': series,
+      'sesiones_por_semana': sesionesPorSemana,
       'peso': peso,
       'descanso_serie': descansoSerie,
       'descanso_ejercicio': descansoEjercicio,
@@ -107,4 +109,14 @@ Future<void> eliminarDetalle(
 }) async {
   final dio = ref.read(apiClientProvider);
   await dio.delete('/api/rutinas/$rutinaId/detalles/$detalleId');
+}
+
+/// DELETE /api/rutinas/{id} (solo instructor dueño del cliente). El backend
+/// responde 409 si la rutina ya tiene progreso registrado -ese mensaje ya
+/// viene listo para mostrar tal cual, vía friendlyMessage-; si no, borra la
+/// rutina y sus detalles en cascada. El caller debe invalidar
+/// [rutinasProvider] del cliente correspondiente tras un borrado exitoso.
+Future<void> eliminarRutina(WidgetRef ref, {required int rutinaId}) async {
+  final dio = ref.read(apiClientProvider);
+  await dio.delete('/api/rutinas/$rutinaId');
 }

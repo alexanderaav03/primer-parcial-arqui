@@ -8,6 +8,7 @@ class EjercicioDetalle {
   final bool tieneEjemploCompleto;
   final int repeticiones;
   final int series;
+  final int sesionesPorSemana;
   final num peso;
   final String descansoSerie;
   final String descansoEjercicio;
@@ -23,6 +24,7 @@ class EjercicioDetalle {
     required this.tieneEjemploCompleto,
     required this.repeticiones,
     required this.series,
+    required this.sesionesPorSemana,
     required this.peso,
     required this.descansoSerie,
     required this.descansoEjercicio,
@@ -39,6 +41,7 @@ class EjercicioDetalle {
         tieneEjemploCompleto: json['tiene_ejemplo_completo'] as bool,
         repeticiones: json['repeticiones'] as int,
         series: json['series'] as int,
+        sesionesPorSemana: json['sesiones_por_semana'] as int,
         peso: json['peso'] as num,
         descansoSerie: json['descanso_serie'] as String,
         descansoEjercicio: json['descanso_ejercicio'] as String,
