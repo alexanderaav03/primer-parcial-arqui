@@ -17,5 +17,5 @@ python seed/seed_rutinas.py --docker
 # Terminal 3 — correr la app móvil
 cd app_movil
 flutter devices
-# copiar el ID que aparece para SU celular (no el tuyo — va a ser distinto)
-flutter run -d <SU-ID-DE-DISPOSITIVO> --dart-define=GATEWAY_BASE_URL=http://<IP-DE-SU-PC>:8000
+# copiar el ID que aparece para SU celular 
+flutter run -d 15187705CJ007699  --dart-define=GATEWAY_BASE_URL=http://<IP-DE-SU-PC>:8000

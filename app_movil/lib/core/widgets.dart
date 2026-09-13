@@ -185,6 +185,10 @@ class InitialsAvatar extends StatelessWidget {
 /// app: si no hay [imagenUrl] o falla la carga, un placeholder tintado con
 /// el color primario del tema activo y un ícono de gimnasio. La usan tanto
 /// el detalle de rutina como el detalle de ejercicio individual.
+///
+/// Si hay [imagenUrl], la imagen es tocable y abre [mostrarImagenCompleta]
+/// (visor de pantalla completa) - no tiene relación con el botón "Ver
+/// video", que sigue siendo el único que abre el video del ejercicio.
 class EjercicioImagen extends StatelessWidget {
   final String? imagenUrl;
   final double height;
@@ -199,7 +203,7 @@ class EjercicioImagen extends StatelessWidget {
       return _placeholder(colorScheme, Icons.fitness_center);
     }
 
-    return Image.network(
+    final imagen = Image.network(
       imagenUrl!,
       height: height,
       width: double.infinity,
@@ -213,6 +217,11 @@ class EjercicioImagen extends StatelessWidget {
       },
       errorBuilder: (context, error, stackTrace) => _placeholder(colorScheme, Icons.broken_image_outlined),
     );
+
+    return GestureDetector(
+      onTap: () => mostrarImagenCompleta(context, imagenUrl!),
+      child: imagen,
+    );
   }
 
   Widget _placeholder(ColorScheme colorScheme, IconData icon) {
@@ -223,6 +232,47 @@ class EjercicioImagen extends StatelessWidget {
       child: Icon(icon, size: 56, color: colorScheme.primary),
     );
   }
+}
+
+/// Abre [imagenUrl] en un visor de pantalla completa (fondo oscuro, zoom
+/// con pinch/doble tap). La usa [EjercicioImagen] y la miniatura de "Mis
+/// ejercicios" al tocar la imagen del ejercicio.
+void mostrarImagenCompleta(BuildContext context, String imagenUrl) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.black,
+    builder: (dialogContext) => GestureDetector(
+      onTap: () => Navigator.of(dialogContext).pop(),
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+          ],
+        ),
+        body: Center(
+          child: InteractiveViewer(
+            minScale: 0.5,
+            maxScale: 4,
+            child: Image.network(
+              imagenUrl,
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.broken_image_outlined,
+                color: Colors.white54,
+                size: 64,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// Ícono pequeño + texto, para datos secundarios como los descansos

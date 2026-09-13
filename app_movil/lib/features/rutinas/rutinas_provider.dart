@@ -76,6 +76,38 @@ Future<int> agregarDetalle(
   return data['detalle_id'] as int;
 }
 
+/// PUT /api/rutinas/{rutina_id}/detalles/{detalle_id} (solo instructor
+/// dueño). El backend acepta edición parcial, pero acá se manda el
+/// formulario completo porque la pantalla de edición ya precarga todos los
+/// valores actuales y permite tocar cualquiera. El caller debe invalidar
+/// [rutinaDetalleProvider] para que la lista muestre los valores nuevos.
+Future<void> editarDetalle(
+  WidgetRef ref, {
+  required int rutinaId,
+  required int detalleId,
+  required int repeticiones,
+  required int series,
+  required int sesionesPorSemana,
+  required num peso,
+  required String descansoSerie,
+  required String descansoEjercicio,
+  required int rpe,
+}) async {
+  final dio = ref.read(apiClientProvider);
+  await dio.put(
+    '/api/rutinas/$rutinaId/detalles/$detalleId',
+    data: {
+      'repeticiones': repeticiones,
+      'series': series,
+      'sesiones_por_semana': sesionesPorSemana,
+      'peso': peso,
+      'descanso_serie': descansoSerie,
+      'descanso_ejercicio': descansoEjercicio,
+      'rpe': rpe,
+    },
+  );
+}
+
 /// PUT /api/rutinas/{id} (solo instructor dueño del cliente). El backend
 /// aplica la misma validación de solapamiento de fechas que la creación
 /// -excluyendo esta propia rutina-. El caller debe invalidar

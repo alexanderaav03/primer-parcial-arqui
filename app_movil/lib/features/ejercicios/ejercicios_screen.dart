@@ -112,6 +112,7 @@ class _EjercicioBancoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final tieneImagen = ejercicio.imagenUrl != null && ejercicio.imagenUrl!.isNotEmpty;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -122,17 +123,20 @@ class _EjercicioBancoCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: ejercicio.imagenUrl != null
-                    ? Image.network(
-                        ejercicio.imagenUrl!,
-                        width: 64,
-                        height: 64,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => _placeholder(colorScheme),
-                      )
-                    : _placeholder(colorScheme),
+              GestureDetector(
+                onTap: tieneImagen ? () => mostrarImagenCompleta(context, ejercicio.imagenUrl!) : null,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: tieneImagen
+                      ? Image.network(
+                          ejercicio.imagenUrl!,
+                          width: 64,
+                          height: 64,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => _placeholder(colorScheme),
+                        )
+                      : _placeholder(colorScheme),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(

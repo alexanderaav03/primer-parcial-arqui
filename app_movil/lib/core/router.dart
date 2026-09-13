@@ -18,6 +18,7 @@ import '../features/perfil/perfil_screen.dart';
 import '../features/progreso/historial_progreso_screen.dart';
 import '../features/rutinas/agregar_ejercicio_rutina_screen.dart';
 import '../features/rutinas/crear_rutina_screen.dart';
+import '../features/rutinas/editar_detalle_rutina_screen.dart';
 import '../features/rutinas/editar_rutina_screen.dart';
 import '../features/rutinas/rutina_detalle_screen.dart';
 import '../features/rutinas/rutinas_screen.dart';
@@ -147,6 +148,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final rutinaId = int.parse(state.pathParameters['rutinaId']!);
           return RutinaDetalleScreen(rutinaId: rutinaId);
+        },
+      ),
+      GoRoute(
+        path: '/rutinas/:rutinaId/detalles/:detalleId/editar',
+        builder: (context, state) {
+          final rutinaId = int.parse(state.pathParameters['rutinaId']!);
+          final detalle = state.extra as EjercicioDetalle;
+          return EditarDetalleRutinaScreen(rutinaId: rutinaId, detalle: detalle);
         },
       ),
       GoRoute(

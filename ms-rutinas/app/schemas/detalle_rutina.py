@@ -14,6 +14,21 @@ class DetalleRutinaCreate(BaseModel):
     rpe: int = Field(ge=1, le=10)
 
 
+class DetalleRutinaUpdate(BaseModel):
+    """Edición parcial de un detalle ya creado -todos los campos opcionales,
+    solo se actualizan los que vengan presentes-. No incluye ejercicio_id:
+    para cambiar el ejercicio se sigue eliminando y creando un detalle
+    nuevo, eso no cambia con esta feature."""
+
+    repeticiones: int | None = Field(default=None, gt=0)
+    series: int | None = Field(default=None, gt=0)
+    sesiones_por_semana: int | None = Field(default=None, gt=0)
+    peso: float | None = Field(default=None, ge=0)
+    descanso_serie: str | None = Field(default=None, min_length=1, max_length=50)
+    descanso_ejercicio: str | None = Field(default=None, min_length=1, max_length=50)
+    rpe: int | None = Field(default=None, ge=1, le=10)
+
+
 class EnUsoResponse(BaseModel):
     """Shape genérico {"en_uso": bool} para los endpoints internos
     existe-ejercicio y existe-cliente -misma pregunta, distinto recurso-."""

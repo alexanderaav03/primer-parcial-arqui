@@ -74,6 +74,20 @@ class RutinaDetalleScreen extends ConsumerWidget {
             ),
         ],
       ),
+      floatingActionButton: (esInstructor && detalleCargado != null)
+          ? FloatingActionButton(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              tooltip: 'Agregar ejercicio',
+              onPressed: () async {
+                await context.push(
+                  '/rutinas/$rutinaId/agregar-ejercicios?clienteId=${detalleCargado.clienteId}',
+                );
+                ref.invalidate(rutinaDetalleProvider(rutinaId));
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: detalleAsync.when(
         loading: () => const LoadingView(message: 'Cargando rutina...'),
         error: (error, _) => AsyncErrorView(
@@ -181,6 +195,16 @@ class _EjercicioCard extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
+                    if (esInstructor)
+                      IconButton(
+                        icon: const Icon(Icons.edit_outlined),
+                        tooltip: 'Editar ejercicio',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => context.push(
+                          '/rutinas/$rutinaId/detalles/${ejercicio.detalleId}/editar',
+                          extra: ejercicio,
+                        ),
+                      ),
                     if (onDelete != null)
                       IconButton(
                         icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),

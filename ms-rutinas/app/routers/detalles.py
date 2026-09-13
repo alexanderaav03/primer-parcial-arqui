@@ -5,7 +5,12 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.dependencies import CurrentUser, get_bearer_token, get_current_user, require_instructor
-from app.schemas.detalle_rutina import DetalleRutinaCreate, DetalleRutinaResponse, EnUsoResponse
+from app.schemas.detalle_rutina import (
+    DetalleRutinaCreate,
+    DetalleRutinaResponse,
+    DetalleRutinaUpdate,
+    EnUsoResponse,
+)
 from app.services.detalle_service import DetalleService
 from app.services.rutina_service import RutinaService
 
@@ -61,6 +66,18 @@ async def create_detalle(
     db: Annotated[Session, Depends(get_db)],
 ) -> DetalleRutinaResponse:
     return await DetalleService(db).create(rutina_id, body, bearer_token)
+
+
+@router.put("/{rutina_id}/detalles/{detalle_id}", response_model=DetalleRutinaResponse)
+async def update_detalle(
+    rutina_id: int,
+    detalle_id: int,
+    body: DetalleRutinaUpdate,
+    current_user: Annotated[CurrentUser, Depends(require_instructor)],
+    bearer_token: Annotated[str, Depends(get_bearer_token)],
+    db: Annotated[Session, Depends(get_db)],
+) -> DetalleRutinaResponse:
+    return await DetalleService(db).update(rutina_id, detalle_id, body, bearer_token)
 
 
 @router.delete("/{rutina_id}/detalles/{detalle_id}", status_code=status.HTTP_204_NO_CONTENT)
