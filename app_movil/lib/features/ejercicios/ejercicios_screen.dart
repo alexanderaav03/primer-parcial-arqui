@@ -4,12 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/api_client.dart';
 import '../../core/widgets.dart';
+import '../auth/auth_provider.dart';
 import '../models/ejercicio_banco.dart';
 import '../shell/main_app_bar.dart';
 import 'ejercicios_provider.dart';
 
-/// Banco de ejercicios propio del instructor. Hoy es de solo lectura;
-/// queda como base para agregar crear/editar más adelante.
+/// Banco de ejercicios propio del instructor: crear, ver detalle, editar
+/// y eliminar.
 class EjerciciosScreen extends ConsumerStatefulWidget {
   const EjerciciosScreen({super.key});
 
@@ -30,9 +31,19 @@ class _EjerciciosScreenState extends ConsumerState<EjerciciosScreen> {
   @override
   Widget build(BuildContext context) {
     final ejerciciosAsync = ref.watch(ejerciciosBancoProvider);
+    final esInstructor = ref.watch(authProvider).usuario?.esInstructor ?? false;
 
     return Scaffold(
       appBar: const MainAppBar(title: 'Mis ejercicios'),
+      floatingActionButton: esInstructor
+          ? FloatingActionButton(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              tooltip: 'Nuevo ejercicio',
+              onPressed: () => context.push('/ejercicios/nuevo'),
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: Column(
         children: [
           SearchField(

@@ -6,6 +6,7 @@ import '../features/auth/login_screen.dart';
 import '../features/clientes/clientes_screen.dart';
 import '../features/clientes/crear_cliente_screen.dart';
 import '../features/clientes/editar_cliente_screen.dart';
+import '../features/ejercicios/crear_ejercicio_screen.dart';
 import '../features/ejercicios/editar_ejercicio_screen.dart';
 import '../features/ejercicios/ejercicio_detalle_screen.dart';
 import '../features/ejercicios/ejercicios_screen.dart';
@@ -104,6 +105,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           final clienteId = int.parse(state.uri.queryParameters['clienteId']!);
           return AgregarEjercicioRutinaScreen(rutinaId: rutinaId, clienteId: clienteId);
         },
+      ),
+      GoRoute(
+        // Declarada antes de /ejercicios/:ejercicioId a propósito: ese
+        // segmento es un parámetro sin tipo a nivel de ruteo, así que
+        // "nuevo" podría matchear ahí primero y romper el int.parse().
+        path: '/ejercicios/nuevo',
+        builder: (context, state) => const CrearEjercicioScreen(),
       ),
       GoRoute(
         path: '/ejercicios/:ejercicioId',

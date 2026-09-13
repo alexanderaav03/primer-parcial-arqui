@@ -1,9 +1,10 @@
 """
 Seed de datos para la base "ejercicios" (ms-ejercicios).
 
-Crea 1 instructor de prueba y 15 ejercicios (10 con media completa +
-valores de referencia sugeridos, 5 sin media ni valores sugeridos,
-solo para llenar el banco).
+Crea 1 instructor de prueba y 15 ejercicios, todos con imagen/video
+reales alojados en Supabase Storage (bucket ejercicios-media): 10 con
+valores de referencia sugeridos, 5 sin valores sugeridos (solo para
+llenar el banco con variedad).
 
 Requiere las mismas dependencias que ms-ejercicios (sqlalchemy,
 psycopg2-binary, passlib[bcrypt], python-dotenv -> ya estan en su venv).
@@ -92,13 +93,20 @@ INSTRUCTOR = {
     "especialidad": "Fuerza y acondicionamiento",
 }
 
-# Cada uno con su slug de placeholder, descripcion, y valores de referencia
-# sugeridos (varian un poco por ejercicio - los compuestos pesados llevan
-# menos repeticiones, mas peso y mas descanso que los de aislamiento).
+# Bucket publico de Supabase Storage (proyecto "sitema-gym"). El video y la
+# imagen de cada ejercicio son el mismo archivo .mp4 (el .jpg es su primer
+# frame, ver media-ejercicios/imagenes/) subidos con nombre slugificado
+# (solo minusculas/numeros/guiones, sin tildes ni espacios).
+BASE_URL_MEDIA = "https://jfbzyffrggcocrbodbuz.supabase.co/storage/v1/object/public/ejercicios-media"
+
+# Cada uno con su archivo real en Supabase Storage, descripcion, y valores
+# de referencia sugeridos (varian un poco por ejercicio - los compuestos
+# pesados llevan menos repeticiones, mas peso y mas descanso que los de
+# aislamiento).
 EJERCICIOS_CON_MEDIA = [
     {
         "nombre": "Sentadilla",
-        "slug": "Sentadilla",
+        "archivo": "sentadilla-barbell-squat",
         "descripcion": "Ejercicio compuesto de tren inferior que trabaja cuadriceps, gluteos e isquiotibiales.",
         "repeticiones_sugeridas": 10,
         "series_sugeridas": 4,
@@ -109,7 +117,7 @@ EJERCICIOS_CON_MEDIA = [
     },
     {
         "nombre": "Extension de Cuadriceps",
-        "slug": "ExtensionCuadriceps",
+        "archivo": "extension-de-cuadriceps-leg-extension",
         "descripcion": "Ejercicio de aislamiento para cuadriceps realizado en maquina.",
         "repeticiones_sugeridas": 12,
         "series_sugeridas": 3,
@@ -120,7 +128,7 @@ EJERCICIOS_CON_MEDIA = [
     },
     {
         "nombre": "Gemelos en Maquina",
-        "slug": "GemelosMaquina",
+        "archivo": "gemelos-en-maquina-standing-calf-raise",
         "descripcion": "Ejercicio de aislamiento para gemelos (pantorrillas) en maquina.",
         "repeticiones_sugeridas": 15,
         "series_sugeridas": 3,
@@ -131,7 +139,7 @@ EJERCICIOS_CON_MEDIA = [
     },
     {
         "nombre": "Remo de espalda en maquina",
-        "slug": "RemoEspalda",
+        "archivo": "remo-de-espalda-en-maquina-seated-row",
         "descripcion": "Ejercicio de traccion horizontal para dorsales y espalda media en maquina.",
         "repeticiones_sugeridas": 12,
         "series_sugeridas": 3,
@@ -142,7 +150,7 @@ EJERCICIOS_CON_MEDIA = [
     },
     {
         "nombre": "Press de banca",
-        "slug": "PressBanca",
+        "archivo": "press-de-banca-barbell-bench-press",
         "descripcion": "Ejercicio compuesto de empuje horizontal para pecho, hombros y triceps.",
         "repeticiones_sugeridas": 8,
         "series_sugeridas": 4,
@@ -153,7 +161,7 @@ EJERCICIOS_CON_MEDIA = [
     },
     {
         "nombre": "Jalon al pecho",
-        "slug": "JalonPecho",
+        "archivo": "jalon-al-pecho-machine-lat-pulldown",
         "descripcion": "Ejercicio de traccion vertical en polea alta para dorsales y biceps.",
         "repeticiones_sugeridas": 12,
         "series_sugeridas": 3,
@@ -164,7 +172,7 @@ EJERCICIOS_CON_MEDIA = [
     },
     {
         "nombre": "Curl de biceps con barra",
-        "slug": "CurlBiceps",
+        "archivo": "curl-de-biceps-con-barra-barbell-biceps-curl",
         "descripcion": "Ejercicio de aislamiento para biceps realizado con barra recta u olimpica.",
         "repeticiones_sugeridas": 12,
         "series_sugeridas": 3,
@@ -175,7 +183,7 @@ EJERCICIOS_CON_MEDIA = [
     },
     {
         "nombre": "Press militar",
-        "slug": "PressMilitar",
+        "archivo": "press-militar-overhead-press",
         "descripcion": "Ejercicio compuesto de empuje vertical para hombros y triceps.",
         "repeticiones_sugeridas": 10,
         "series_sugeridas": 3,
@@ -186,7 +194,7 @@ EJERCICIOS_CON_MEDIA = [
     },
     {
         "nombre": "Peso muerto",
-        "slug": "PesoMuerto",
+        "archivo": "peso-muerto-barbell-deadlift",
         "descripcion": "Ejercicio compuesto de cadena posterior para espalda baja, gluteos e isquiotibiales.",
         "repeticiones_sugeridas": 6,
         "series_sugeridas": 4,
@@ -197,7 +205,7 @@ EJERCICIOS_CON_MEDIA = [
     },
     {
         "nombre": "Extension de triceps en polea",
-        "slug": "ExtensionTriceps",
+        "archivo": "extension-de-triceps-en-polea-triceps-pushdown",
         "descripcion": "Ejercicio de aislamiento para triceps realizado en polea alta.",
         "repeticiones_sugeridas": 12,
         "series_sugeridas": 3,
@@ -208,12 +216,30 @@ EJERCICIOS_CON_MEDIA = [
     },
 ]
 
-EJERCICIOS_SIN_MEDIA = [
-    ("Zancadas", "Ejercicio unilateral de tren inferior para cuadriceps y gluteos."),
-    ("Plancha abdominal", "Ejercicio isometrico de core para abdomen y estabilidad de tronco."),
-    ("Remo con mancuerna", "Ejercicio de traccion horizontal unilateral para espalda con mancuerna."),
-    ("Elevaciones laterales", "Ejercicio de aislamiento para deltoides lateral con mancuernas."),
-    ("Hip thrust", "Ejercicio compuesto para gluteos realizado con barra apoyada en cadera."),
+# Mismo patron que EJERCICIOS_CON_MEDIA (imagen/video reales), pero sin
+# valores de referencia sugeridos -solo para llenar el banco con variedad-.
+EJERCICIOS_SIN_SUGERIDOS = [
+    ("Zancadas", "Ejercicio unilateral de tren inferior para cuadriceps y gluteos.", "zancadas-barbell-lunges"),
+    (
+        "Plancha abdominal",
+        "Ejercicio isometrico de core para abdomen y estabilidad de tronco.",
+        "plancha-abdominal-plank",
+    ),
+    (
+        "Remo con mancuerna",
+        "Ejercicio de traccion horizontal unilateral para espalda con mancuerna.",
+        "remo-con-mancuerna-dumbbell-bent-over-row",
+    ),
+    (
+        "Elevaciones laterales",
+        "Ejercicio de aislamiento para deltoides lateral con mancuernas.",
+        "elevaciones-laterales-dumbbell-lateral-raise",
+    ),
+    (
+        "Hip thrust",
+        "Ejercicio compuesto para gluteos realizado con barra apoyada en cadera.",
+        "hip-thrust-barbell-hip-thrust",
+    ),
 ]
 
 
@@ -290,14 +316,14 @@ def main() -> None:
         print(f"== Seed ejercicios (usando {ENV_PATH.name}: {DATABASE_URL}) ==")
         instructor = get_or_create_instructor(db)
 
-        for idx, datos in enumerate(EJERCICIOS_CON_MEDIA, start=1):
+        for datos in EJERCICIOS_CON_MEDIA:
             get_or_create_ejercicio(
                 db,
                 instructor,
                 nombre=datos["nombre"],
                 descripcion=datos["descripcion"],
-                imagen_url=f"https://placehold.co/600x400?text={datos['slug']}",
-                video_url=f"https://youtube.com/watch?v=demo{idx}",
+                imagen_url=f"{BASE_URL_MEDIA}/{datos['archivo']}.jpg",
+                video_url=f"{BASE_URL_MEDIA}/{datos['archivo']}.mp4",
                 tiene_ejemplo_completo=True,
                 repeticiones_sugeridas=datos["repeticiones_sugeridas"],
                 series_sugeridas=datos["series_sugeridas"],
@@ -307,15 +333,15 @@ def main() -> None:
                 rpe_sugerido=datos["rpe_sugerido"],
             )
 
-        for nombre, descripcion in EJERCICIOS_SIN_MEDIA:
+        for nombre, descripcion, archivo in EJERCICIOS_SIN_SUGERIDOS:
             get_or_create_ejercicio(
                 db,
                 instructor,
                 nombre=nombre,
                 descripcion=descripcion,
-                imagen_url=None,
-                video_url=None,
-                tiene_ejemplo_completo=False,
+                imagen_url=f"{BASE_URL_MEDIA}/{archivo}.jpg",
+                video_url=f"{BASE_URL_MEDIA}/{archivo}.mp4",
+                tiene_ejemplo_completo=True,
                 # sin valores sugeridos: quedan en null (default de la funcion)
             )
 
