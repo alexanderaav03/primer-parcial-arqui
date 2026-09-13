@@ -1,0 +1,128 @@
+# Credenciales alineadas con ms-ejercicios/.env y ms-rutinas/.env
+x-postgres-user: &postgres-user postgres
+x-postgres-password: &postgres-password "1234"
+x-jwt-secret: &jwt-secret cambiar-en-produccion
+
+services:
+  db-ejercicios:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: *postgres-user
+      POSTGRES_PASSWORD: *postgres-password
+      POSTGRES_DB: ejercicios
+    volumes:
+      - db-ejercicios-data:/var/lib/postgresql/data
+    ports:
+      # Puerto de host distinto (5433) para no chocar con un Postgres local
+      # en 5432. Solo para acceso externo (ej. scripts de seed); los
+      # servicios dentro de docker-compose siguen usando db-ejercicios:5432.
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ejercicios"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  db-rutinas:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: *postgres-user
+      POSTGRES_PASSWORD: *postgres-password
+      POSTGRES_DB: rutinas
+    volumes:
+      - db-rutinas-data:/var/lib/postgresql/data
+    ports:
+      # Puerto de host distinto (5434) para no chocar con un Postgres local
+      # en 5432. Solo para acceso externo (ej. scripts de seed); los
+      # servicios dentro de docker-compose siguen usando db-rutinas:5432.
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d rutinas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  ms-ejercicios:
+    build: ./ms-ejercicios
+    depends_on:
+      db-ejercicios:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@db-ejercicios:5432/ejercicios
+      JWT_SECRET: *jwt-secret
+      JWT_EXPIRE_MINUTES: "60"
+      SUPABASE_URL: ""
+      SUPABASE_KEY: ""
+      SUPABASE_BUCKET: ejercicios-media
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  ms-rutinas:
+    build: ./ms-rutinas
+    depends_on:
+      db-rutinas:
+        condition: service_healthy
+      ms-ejercicios:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:1234@db-rutinas:5432/rutinas
+      JWT_SECRET: *jwt-secret
+      MS_EJERCICIOS_URL: http://ms-ejercicios:8001
+    ports:
+      - "8002:8002"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  gateway:
+    build: ./gateway
+    depends_on:
+      ms-ejercicios:
+        condition: service_healthy
+      ms-rutinas:
+        condition: service_healthy
+    environment:
+      JWT_SECRET: *jwt-secret
+      MS_EJERCICIOS_URL: http://ms-ejercicios:8001
+      MS_RUTINAS_URL: http://ms-rutinas:8002
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  db-ejercicios-data:
+  db-rutinas-data:

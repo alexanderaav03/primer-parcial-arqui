@@ -1,0 +1,40 @@
+# .gitignore raíz del proyecto (gateway, ms-ejercicios, ms-rutinas, seed).
+# app_movil/ ya trae el suyo propio (generado por `flutter create`), no se
+# duplica acá.
+
+# ==== Entornos virtuales y artefactos de Python ====
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# ==== Variables de entorno ====
+# Nunca a git, aunque hoy sean valores de desarrollo (JWT_SECRET, password
+# de Postgres local) y no secretos reales. .env.example sí se versiona.
+.env
+.env.docker
+!.env.example
+!*/.env.example
+
+# ==== Node (por si se agrega tooling JS más adelante) ====
+node_modules/
+
+# ==== Sistema operativo ====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==== Editores / IDEs ====
+.vscode/
+.idea/
+*.swp
+
+# ==== Logs y temporales ====
+*.log
+*.tmp
